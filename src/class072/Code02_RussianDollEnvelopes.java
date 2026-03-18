@@ -16,7 +16,7 @@ public class Code02_RussianDollEnvelopes {
 		int n = envelopes.length;
 		// 排序策略:
 		// 宽度从小到大
-		// 宽度一样，高度从大到小
+		// 宽度一样，高度从大到小。高度逆序避免宽度相同嵌套
 		Arrays.sort(envelopes, (a, b) -> a[0] != b[0] ? (a[0] - b[0]) : (b[1] - a[1]));
 		int[] ends = new int[n];
 		int len = 0;

@@ -20,5 +20,4 @@ public class Code03_MaximumSumCircularSubarray {
 		// 2) all - minsum
 		return all == minsum ? maxsum : Math.max(maxsum, all - minsum);
 	}
-
 }

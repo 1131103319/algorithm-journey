@@ -60,6 +60,7 @@ public class Code01_PartitionedKnapsack {
 	// 严格位置依赖的动态规划
 	public static int compute1() {
 		int teams = 1;
+		//统计多少组
 		for (int i = 2; i <= n; i++) {
 			if (arr[i - 1][2] != arr[i][2]) {
 				teams++;

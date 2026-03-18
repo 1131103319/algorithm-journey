@@ -49,6 +49,7 @@ public class Code04_MaximumLengthOfPairChain {
 	// 最优解利用贪心
 	public static int findLongestChain2(int[][] pairs) {
 		int pre = Integer.MIN_VALUE, ans = 0;
+		//排序获取最早结束
 		Arrays.sort(pairs, (a, b) -> a[1] - b[1]);
 		for (int[] pair : pairs) {
 			if (pre < pair[0]) {

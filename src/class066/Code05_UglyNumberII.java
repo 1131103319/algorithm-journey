@@ -30,5 +30,4 @@ public class Code05_UglyNumberII {
 		}
 		return dp[n];
 	}
-
 }

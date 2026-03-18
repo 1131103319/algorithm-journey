@@ -64,17 +64,22 @@ public class Code04_BoundedKnapsackWithMonotonicQueue {
 	public static int compute1() {
 		int[][] dp = new int[n + 1][t + 1];
 		for (int i = 1; i <= n; i++) {
-			// 同余分组
+			// 同余分组  货物重量取余最大值和背包容量取最小
 			for (int mod = 0; mod <= Math.min(t, w[i] - 1); mod++) {
 				l = r = 0;
+				//遍历每一组
 				for (int j = mod; j <= t; j += w[i]) {
+					//单调队列从大到小：如果发现队列最右侧的值比当前要进来的值小或等就弹出
 					while (l < r && value1(dp, i, queue[r - 1]) <= value1(dp, i, j)) {
 						r--;
 					}
+					//将当前下标加入队列
 					queue[r++] = j;
+					//如果队列最左侧的下标过期则剔除
 					if (queue[l] == j - w[i] * (c[i] + 1)) {
 						l++;
 					}
+					//
 					dp[i][j] = value1(dp, i, queue[l]) + j / w[i] * v[i];
 				}
 			}

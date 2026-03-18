@@ -54,7 +54,9 @@ public class Code02_MaximumValueOfKcoinsFromPiles {
 				sum += team.get(j);
 				preSum[j + 1] = sum;
 			}
+			//总操作m次
 			for (int j = m; j > 0; j--) {
+				//可选择方案
 				for (int k = 1; k <= Math.min(t, j); k++) {
 					dp[j] = Math.max(dp[j], dp[j - k] + preSum[k]);
 				}

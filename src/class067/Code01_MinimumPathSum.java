@@ -107,5 +107,20 @@ public class Code01_MinimumPathSum {
 		}
 		return dp[m - 1];
 	}
+	//严格位置依赖的动态规划 + 空间压缩技巧1
+	public int minPathSum(int[][] grid) {
+		int m=grid.length;
+		int n=grid[0].length;
+		for(int i=1;i<n;i++){
+			grid[0][i]=grid[0][i-1]+grid[0][i];
+		}
+		for(int i=1;i<m;i++){
+			grid[0][0]=grid[i][0]+grid[0][0];
+			for(int j=1;j<n;j++){
+				grid[0][j]=Math.min(grid[0][j],grid[0][j-1])+grid[i][j];
+			}
+		}
+		return grid[0][n-1];
+	}
 
 }

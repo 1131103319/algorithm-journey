@@ -61,7 +61,9 @@ public class Code01_BoundedKnapsack {
 		for (int i = 1; i <= n; i++) {
 			for (int j = 0; j <= t; j++) {
 				dp[i][j] = dp[i - 1][j];
+				//显式确定选固定货物最大价值
 				for (int k = 1; k <= c[i] && w[i] * k <= j; k++) {
+					//todo 关键点 多重背包和01背包依赖前一个货物 完全背包依赖自身之前的的容量
 					dp[i][j] = Math.max(dp[i][j], dp[i - 1][j - k * w[i]] + k * v[i]);
 				}
 			}

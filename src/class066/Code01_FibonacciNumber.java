@@ -16,7 +16,7 @@ public class Code01_FibonacciNumber {
 	public static int fib1(int n) {
 		return f1(n);
 	}
-
+	//暴力解
 	public static int f1(int i) {
 		if (i == 0) {
 			return 0;
@@ -26,7 +26,7 @@ public class Code01_FibonacciNumber {
 		}
 		return f1(i - 1) + f1(i - 2);
 	}
-
+	//加缓存
 	public static int fib2(int n) {
 		int[] dp = new int[n + 1];
 		Arrays.fill(dp, -1);
@@ -47,7 +47,7 @@ public class Code01_FibonacciNumber {
 		dp[i] = ans;
 		return ans;
 	}
-
+	//从底到顶
 	public static int fib3(int n) {
 		if (n == 0) {
 			return 0;

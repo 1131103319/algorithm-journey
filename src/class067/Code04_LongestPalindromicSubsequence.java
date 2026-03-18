@@ -29,7 +29,7 @@ public class Code04_LongestPalindromicSubsequence {
 			return Math.max(f1(s, l + 1, r), f1(s, l, r - 1));
 		}
 	}
-
+	//记忆化搜索
 	public static int longestPalindromeSubseq2(String str) {
 		char[] s = str.toCharArray();
 		int n = s.length;
@@ -56,7 +56,7 @@ public class Code04_LongestPalindromicSubsequence {
 		dp[l][r] = ans;
 		return ans;
 	}
-
+	//位置依赖
 	public static int longestPalindromeSubseq3(String str) {
 		char[] s = str.toCharArray();
 		int n = s.length;

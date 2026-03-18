@@ -78,6 +78,26 @@ public class Code02_ProfitableSchemes {
 		return ans;
 	}
 
+//	public static int mod=1000000007;
+	public int profitableSchemes(int n, int minProfit, int[] group, int[] profit) {
+		int[][][] dp=new int[group.length+1][minProfit+1][n+1];
+		for(int z=0;z<=n;z++){
+			dp[group.length][0][z]=1;
+		}
+		for(int i=group.length-1;i>=0;i--){
+			for(int j=0;j<=minProfit;j++){
+				for(int z=0;z<=n;z++){
+					int a=0;
+					if(z>=group[i]){
+						a=dp[i+1][Math.max(0,j-profit[i])][z-group[i]];
+					}
+					dp[i][j][z]=(dp[i+1][j][z]+a)%mod;
+				}
+			}
+		}
+		return dp[0][minProfit][n];
+	}
+
 	public static int profitableSchemes3(int n, int minProfit, int[] group, int[] profit) {
 		// i = 没有工作的时候，i == g.length
 		int[][] dp = new int[n + 1][minProfit + 1];

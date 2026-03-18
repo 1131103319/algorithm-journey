@@ -31,15 +31,15 @@ public class Code05_DependentKnapsack {
 	public static int MAXN = 33001;
 
 	public static int MAXM = 61;
-
+	//花费
 	public static int[] cost = new int[MAXM];
-
+	//价值
 	public static int[] val = new int[MAXM];
-
+	//是否主件
 	public static boolean[] king = new boolean[MAXM];
-
+	//有几个附件
 	public static int[] fans = new int[MAXM];
-
+	//主件的附件
 	public static int[][] follows = new int[MAXM][2];
 
 	public static int[] dp = new int[MAXN];
@@ -81,7 +81,7 @@ public class Code05_DependentKnapsack {
 
 	// 严格位置依赖的动态规划
 	public static int compute1() {
-		// dp[0][....] = 0 : 无商品的时候
+		// dp[0][....] = 0 : 无商品的时候。购买第m件商品，总花费n时最大收益
 		int[][] dp = new int[m + 1][n + 1];
 		// p : 上次展开的主商品编号
 		int p = 0;

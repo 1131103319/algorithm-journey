@@ -80,7 +80,7 @@ public class Code04_DecodeWaysII {
 	}
 
 	public static long mod = 1000000007;
-
+//挂缓存
 	public static int numDecodings2(String str) {
 		char[] s = str.toCharArray();
 		long[] dp = new long[s.length];

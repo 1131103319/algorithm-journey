@@ -58,10 +58,13 @@ public class Code03_UnboundedKnapsack {
 	// 会空间不够，导致无法通过全部测试用例
 	public static long compute1() {
 		// dp[0][.....] = 0
+		//采哪种药和时间
 		int[][] dp = new int[m + 1][t + 1];
 		for (int i = 1; i <= m; i++) {
 			for (int j = 0; j <= t; j++) {
+				//不采当前药
 				dp[i][j] = dp[i - 1][j];
+				//采当前药
 				if (j - cost[i] >= 0) {
 					dp[i][j] = Math.max(dp[i][j], dp[i][j - cost[i]] + val[i]);
 				}
