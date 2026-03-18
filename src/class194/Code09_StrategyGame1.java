@@ -1,12 +1,14 @@
 package class194;
 
-// 通讯网破坏，java版
-// 给定一张无向图，一共n个点、m条边，所有点保证连通
-// 一共q条查询，格式 x y z : 如果删除点z，打印x和y是否断连
-// 1 <= n <= 2 * 10^4
-// 1 <= m <= 10 ^ 5
-// 1 <= q <= 10 ^ 5
-// 测试链接 : https://www.luogu.com.cn/problem/P3854
+// 战略游戏，java版
+// 给定一张无向图，一共n个点、m条边，所有点保证连通，图中可能有重边
+// 一共有q条查询，每条查询格式 s K1 K2 .. Ks，含义如下
+// 当前查询涉及s个点，给出s个点的编号，你只能删掉一个另外的点
+// 删除该点后，只要这s个点中存在任意两点不连通，就算成功
+// 对每条查询，打印你能选择的点的个数
+// 2 <= n <= 10^5    1 <= m <= 2 * 10^5    1 <= q <= 10^5
+// 所有查询中s的总和 <= 2 * 10^5
+// 测试链接 : https://www.luogu.com.cn/problem/P4606
 // 提交以下的code，提交时请把类名改成"Main"，可以通过所有测试用例
 
 import java.io.IOException;
@@ -14,12 +16,12 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-public class Code02_NetworkDamage1 {
+public class Code09_StrategyGame1 {
 
-	public static int MAXN = 20001;
-	public static int MAXM = 100001;
-	public static int MAXP = 18;
-	public static int n, m, q, cntn;
+	public static int MAXN = 100001;
+	public static int MAXM = 200001;
+	public static int MAXP = 20;
+	public static int t, n, m, q, s, cntn;
 
 	public static int[] head1 = new int[MAXN];
 	public static int[] next1 = new int[MAXM << 1];
@@ -38,18 +40,26 @@ public class Code02_NetworkDamage1 {
 	public static int[] sta = new int[MAXN];
 	public static int top;
 
+	// nid是圆方树的点获得的dfn序号
+	// cnti是圆方树的dfn序号计数
+	public static int[] dist = new int[MAXN << 1];
 	public static int[] dep = new int[MAXN << 1];
 	public static int[][] stjump = new int[MAXN << 1][MAXP];
+	public static int[] nid = new int[MAXN << 1];
+	public static int cnti;
+
+	public static int[] arr = new int[MAXN];
 
 	// 迭代版需要的栈，讲解118讲了递归改迭代的技巧
-	public static int[][] stack = new int[MAXN << 1][3];
-	public static int u, status, e;
+	public static int[][] stack = new int[MAXN << 1][4];
+	public static int u, status, fa, e;
 	public static int stacksize;
 
-	public static void push(int u, int status, int e) {
+	public static void push(int u, int status, int fa, int e) {
 		stack[stacksize][0] = u;
 		stack[stacksize][1] = status;
-		stack[stacksize][2] = e;
+		stack[stacksize][2] = fa;
+		stack[stacksize][3] = e;
 		stacksize++;
 	}
 
@@ -57,7 +67,8 @@ public class Code02_NetworkDamage1 {
 		stacksize--;
 		u = stack[stacksize][0];
 		status = stack[stacksize][1];
-		e = stack[stacksize][2];
+		fa = stack[stacksize][2];
+		e = stack[stacksize][3];
 	}
 
 	public static void addEdge1(int u, int v) {
@@ -101,7 +112,7 @@ public class Code02_NetworkDamage1 {
 	// 迭代版
 	public static void tarjan2(int node) {
 		stacksize = 0;
-		push(node, -1, -1);
+		push(node, -1, 0, -1);
 		int v;
 		while (stacksize > 0) {
 			pop();
@@ -132,17 +143,19 @@ public class Code02_NetworkDamage1 {
 			if (e != 0) {
 				v = to1[e];
 				if (dfn[v] == 0) {
-					push(u, 0, e);
-					push(v, -1, -1);
+					push(u, 0, 0, e);
+					push(v, -1, 0, -1);
 				} else {
-					push(u, 1, e);
+					push(u, 1, 0, e);
 				}
 			}
 		}
 	}
 
-	// 圆方树上建立深度和倍增表
-	public static void dfs(int u, int fa) {
+	// 递归版
+	public static void dfs1(int u, int fa) {
+		nid[u] = ++cnti;
+		dist[u] = dist[fa] + (u <= n ? 1 : 0);
 		dep[u] = dep[fa] + 1;
 		stjump[u][0] = fa;
 		for (int p = 1; p < MAXP; p++) {
@@ -151,64 +164,125 @@ public class Code02_NetworkDamage1 {
 		for (int e = head2[u]; e > 0; e = next2[e]) {
 			int v = to2[e];
 			if (v != fa) {
-				dfs(v, u);
+				dfs1(v, u);
 			}
 		}
 	}
 
-	// 圆方树上任意两点的最低公共祖先
-	public static int getLca(int x, int y) {
-		if (dep[x] < dep[y]) {
-			int tmp = x;
-			x = y;
-			y = tmp;
-		}
-		for (int p = MAXP - 1; p >= 0; p--) {
-			if (dep[stjump[x][p]] >= dep[y]) {
-				x = stjump[x][p];
+	// 迭代版
+	public static void dfs2(int cur, int father) {
+		stacksize = 0;
+		push(cur, 0, father, -1);
+		while (stacksize > 0) {
+			pop();
+			if (e == -1) {
+				nid[u] = ++cnti;
+				dist[u] = dist[fa] + (u <= n ? 1 : 0);
+				dep[u] = dep[fa] + 1;
+				stjump[u][0] = fa;
+				for (int p = 1; p < MAXP; p++) {
+					stjump[u][p] = stjump[stjump[u][p - 1]][p - 1];
+				}
+				e = head2[u];
+			} else {
+				e = next2[e];
+			}
+			if (e != 0) {
+				push(u, 0, fa, e);
+				if (to2[e] != fa) {
+					push(to2[e], 0, u, -1);
+				}
 			}
 		}
-		if (x == y) {
-			return x;
-		}
-		for (int p = MAXP - 1; p >= 0; p--) {
-			if (stjump[x][p] != stjump[y][p]) {
-				x = stjump[x][p];
-				y = stjump[y][p];
-			}
-		}
-		return stjump[x][0];
 	}
 
-	// 圆方树上任意两点间的距离
+	public static int getLca(int a, int b) {
+		if (dep[a] < dep[b]) {
+			int tmp = a; a = b; b = tmp;
+		}
+		for (int p = MAXP - 1; p >= 0; p--) {
+			if (dep[stjump[a][p]] >= dep[b]) {
+				a = stjump[a][p];
+			}
+		}
+		if (a == b) {
+			return a;
+		}
+		for (int p = MAXP - 1; p >= 0; p--) {
+			if (stjump[a][p] != stjump[b][p]) {
+				a = stjump[a][p];
+				b = stjump[b][p];
+			}
+		}
+		return stjump[a][0];
+	}
+
 	public static int getDist(int x, int y) {
-		return dep[x] + dep[y] - 2 * dep[getLca(x, y)];
+		return dist[x] + dist[y] - 2 * dist[getLca(x, y)];
+	}
+
+	public static void sort(int[] nums, int l, int r) {
+		if (l >= r) return;
+		int i = l, j = r;
+		int pivot = nums[(l + r) >> 1];
+		while (i <= j) {
+			while (nid[nums[i]] < nid[pivot]) i++;
+			while (nid[nums[j]] > nid[pivot]) j--;
+			if (i <= j) {
+				int tmp = nums[i]; nums[i] = nums[j]; nums[j] = tmp;
+				i++;
+				j--;
+			}
+		}
+		sort(nums, l, j);
+		sort(nums, i, r);
+	}
+
+	public static int compute() {
+		sort(arr, 1, s);
+		int sumDist = 0;
+		for (int i = 1; i < s; i++) {
+			sumDist += getDist(arr[i], arr[i + 1]);
+		}
+		sumDist += getDist(arr[1], arr[s]);
+		int extra = getLca(arr[1], arr[s]) <= n ? 1 : 0;
+		return sumDist / 2 + extra - s;
+	}
+
+	public static void prepare() {
+		cnt1 = cnt2 = cntd = top = cnti = 0;
+		for (int i = 1; i <= n; i++) {
+			head1[i] = head2[i] = dfn[i] = 0;
+			head2[i + n] = 0;
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		FastReader in = new FastReader(System.in);
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(System.out));
-		n = in.nextInt();
-		m = in.nextInt();
-		cntn = n;
-		for (int i = 1, u, v; i <= m; i++) {
-			u = in.nextInt();
-			v = in.nextInt();
-			addEdge1(u, v);
-			addEdge1(v, u);
-		}
-		// tarjan1(1);
-		tarjan2(1);
-		dfs(1, 0);
-		q = in.nextInt();
-		for (int i = 1, x, y, z; i <= q; i++) {
-			x = in.nextInt();
-			y = in.nextInt();
-			z = in.nextInt();
-			if (getDist(x, y) == getDist(x, z) + getDist(y, z)) {
-				out.println("yes");
-			} else {
-				out.println("no");
+		t = in.nextInt();
+		for (int c = 1; c <= t; c++) {
+			n = in.nextInt();
+			m = in.nextInt();
+			cntn = n;
+			prepare();
+			for (int i = 1, u, v; i <= m; i++) {
+				u = in.nextInt();
+				v = in.nextInt();
+				addEdge1(u, v);
+				addEdge1(v, u);
+			}
+			// tarjan1(1);
+			tarjan2(1);
+			// dfs1(1, 0);
+			dfs2(1, 0);
+			q = in.nextInt();
+			for (int i = 1; i <= q; i++) {
+				s = in.nextInt();
+				for (int j = 1; j <= s; j++) {
+					arr[j] = in.nextInt();
+				}
+				out.println(compute());
 			}
 		}
 		out.flush();

@@ -1,12 +1,14 @@
 package class194;
 
-// 通讯网破坏，java版
+// 城市阻断，java版
 // 给定一张无向图，一共n个点、m条边，所有点保证连通
-// 一共q条查询，格式 x y z : 如果删除点z，打印x和y是否断连
-// 1 <= n <= 2 * 10^4
-// 1 <= m <= 10 ^ 5
-// 1 <= q <= 10 ^ 5
-// 测试链接 : https://www.luogu.com.cn/problem/P3854
+// 对每个点i，打印如下的答案
+// 节点i相连的边去掉以后，无向图有多少点对(x, y)，x和y不连通
+// 注意(x, y)和(y, x)是不同点对
+// 删掉和i相连的边，但是节点i本身不删掉，要参与点对数量的计算
+// 1 <= n <= 10^5
+// 1 <= m <= 5 * 10^5
+// 测试链接 : https://www.luogu.com.cn/problem/P3469
 // 提交以下的code，提交时请把类名改成"Main"，可以通过所有测试用例
 
 import java.io.IOException;
@@ -14,12 +16,11 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-public class Code02_NetworkDamage1 {
+public class Code04_Blockade1 {
 
-	public static int MAXN = 20001;
-	public static int MAXM = 100001;
-	public static int MAXP = 18;
-	public static int n, m, q, cntn;
+	public static int MAXN = 100001;
+	public static int MAXM = 500001;
+	public static int n, m, cntn;
 
 	public static int[] head1 = new int[MAXN];
 	public static int[] next1 = new int[MAXM << 1];
@@ -38,18 +39,22 @@ public class Code02_NetworkDamage1 {
 	public static int[] sta = new int[MAXN];
 	public static int top;
 
-	public static int[] dep = new int[MAXN << 1];
-	public static int[][] stjump = new int[MAXN << 1][MAXP];
+	// dfs过程中，子树中的圆点数量
+	public static int[] siz = new int[MAXN << 1];
+
+	// 每个原图中的点，如果把相邻的边删掉，所统计的答案
+	public static long[] ans = new long[MAXN];
 
 	// 迭代版需要的栈，讲解118讲了递归改迭代的技巧
-	public static int[][] stack = new int[MAXN << 1][3];
-	public static int u, status, e;
+	public static int[][] stack = new int[MAXN << 1][4];
+	public static int u, status, fa, e;
 	public static int stacksize;
 
-	public static void push(int u, int status, int e) {
+	public static void push(int u, int status, int fa, int e) {
 		stack[stacksize][0] = u;
 		stack[stacksize][1] = status;
-		stack[stacksize][2] = e;
+		stack[stacksize][2] = fa;
+		stack[stacksize][3] = e;
 		stacksize++;
 	}
 
@@ -57,7 +62,8 @@ public class Code02_NetworkDamage1 {
 		stacksize--;
 		u = stack[stacksize][0];
 		status = stack[stacksize][1];
-		e = stack[stacksize][2];
+		fa = stack[stacksize][2];
+		e = stack[stacksize][3];
 	}
 
 	public static void addEdge1(int u, int v) {
@@ -101,7 +107,7 @@ public class Code02_NetworkDamage1 {
 	// 迭代版
 	public static void tarjan2(int node) {
 		stacksize = 0;
-		push(node, -1, -1);
+		push(node, -1, 0, -1);
 		int v;
 		while (stacksize > 0) {
 			pop();
@@ -132,57 +138,67 @@ public class Code02_NetworkDamage1 {
 			if (e != 0) {
 				v = to1[e];
 				if (dfn[v] == 0) {
-					push(u, 0, e);
-					push(v, -1, -1);
+					push(u, 0, 0, e);
+					push(v, -1, 0, -1);
 				} else {
-					push(u, 1, e);
+					push(u, 1, 0, e);
 				}
 			}
 		}
 	}
 
-	// 圆方树上建立深度和倍增表
-	public static void dfs(int u, int fa) {
-		dep[u] = dep[fa] + 1;
-		stjump[u][0] = fa;
-		for (int p = 1; p < MAXP; p++) {
-			stjump[u][p] = stjump[stjump[u][p - 1]][p - 1];
-		}
+	// 递归版
+	public static void dpOnTree1(int u, int fa) {
 		for (int e = head2[u]; e > 0; e = next2[e]) {
 			int v = to2[e];
 			if (v != fa) {
-				dfs(v, u);
+				dpOnTree1(v, u);
+				if (u <= n) {
+					ans[u] += 1L * siz[v] * (n - siz[v] - 1);
+				}
+				siz[u] += siz[v];
 			}
+		}
+		siz[u] += u <= n ? 1 : 0;
+		if (u <= n) {
+			ans[u] += 1L * (n - siz[u]) * (siz[u] - 1);
+			ans[u] += 2L * (n - 1);
 		}
 	}
 
-	// 圆方树上任意两点的最低公共祖先
-	public static int getLca(int x, int y) {
-		if (dep[x] < dep[y]) {
-			int tmp = x;
-			x = y;
-			y = tmp;
-		}
-		for (int p = MAXP - 1; p >= 0; p--) {
-			if (dep[stjump[x][p]] >= dep[y]) {
-				x = stjump[x][p];
+	// 迭代版
+	public static void dpOnTree2(int cur, int father) {
+		stacksize = 0;
+		push(cur, 0, fa, -1);
+		while (stacksize > 0) {
+			pop();
+			if (e == -1) {
+				e = head2[u];
+			} else {
+				e = next2[e];
+			}
+			if (e != 0) {
+				push(u, 0, fa, e);
+				if (to2[e] != fa) {
+					push(to2[e], 0, u, -1);
+				}
+			} else {
+				for (int ei = head2[u]; ei > 0; ei = next2[ei]) {
+					int v = to2[ei];
+					if (v != fa) {
+						if (u <= n) {
+							ans[u] += 1L * siz[v] * (n - siz[v] - 1);
+						}
+						siz[u] += siz[v];
+					}
+				}
+				siz[u] += u <= n ? 1 : 0;
+				if (u <= n) {
+					ans[u] += 1L * (n - siz[u]) * (siz[u] - 1);
+					ans[u] += 2L * (n - 1);
+				}
 			}
 		}
-		if (x == y) {
-			return x;
-		}
-		for (int p = MAXP - 1; p >= 0; p--) {
-			if (stjump[x][p] != stjump[y][p]) {
-				x = stjump[x][p];
-				y = stjump[y][p];
-			}
-		}
-		return stjump[x][0];
-	}
-
-	// 圆方树上任意两点间的距离
-	public static int getDist(int x, int y) {
-		return dep[x] + dep[y] - 2 * dep[getLca(x, y)];
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -199,17 +215,10 @@ public class Code02_NetworkDamage1 {
 		}
 		// tarjan1(1);
 		tarjan2(1);
-		dfs(1, 0);
-		q = in.nextInt();
-		for (int i = 1, x, y, z; i <= q; i++) {
-			x = in.nextInt();
-			y = in.nextInt();
-			z = in.nextInt();
-			if (getDist(x, y) == getDist(x, z) + getDist(y, z)) {
-				out.println("yes");
-			} else {
-				out.println("no");
-			}
+		// dpOnTree1(1, 0);
+		dpOnTree2(1, 0);
+		for (int i = 1; i <= n; i++) {
+			out.println(ans[i]);
 		}
 		out.flush();
 		out.close();

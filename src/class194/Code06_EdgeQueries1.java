@@ -1,12 +1,13 @@
 package class194;
 
-// 通讯网破坏，java版
+// 边的查询，java版
 // 给定一张无向图，一共n个点、m条边，所有点保证连通
-// 一共q条查询，格式 x y z : 如果删除点z，打印x和y是否断连
-// 1 <= n <= 2 * 10^4
-// 1 <= m <= 10 ^ 5
-// 1 <= q <= 10 ^ 5
-// 测试链接 : https://www.luogu.com.cn/problem/P3854
+// 一共q条查询，格式 x y，含义如下
+// 所有从x到y的简单路径上出现的边中，统计有多少条边满足
+// 如果移除该边，x和y仍然可以互相到达，打印这个数量
+// 1 <= n、m、q <= 2 * 10^5
+// 测试链接 : https://www.luogu.com.cn/problem/CF1763F
+// 测试链接 : https://codeforces.com/problemset/problem/1763/F
 // 提交以下的code，提交时请把类名改成"Main"，可以通过所有测试用例
 
 import java.io.IOException;
@@ -14,12 +15,14 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-public class Code02_NetworkDamage1 {
+public class Code06_EdgeQueries1 {
 
-	public static int MAXN = 20001;
-	public static int MAXM = 100001;
-	public static int MAXP = 18;
+	public static int MAXN = 200001;
+	public static int MAXM = 200001;
+	public static int MAXP = 20;
 	public static int n, m, q, cntn;
+	public static int[] a = new int[MAXM];
+	public static int[] b = new int[MAXM];
 
 	public static int[] head1 = new int[MAXN];
 	public static int[] next1 = new int[MAXM << 1];
@@ -40,25 +43,7 @@ public class Code02_NetworkDamage1 {
 
 	public static int[] dep = new int[MAXN << 1];
 	public static int[][] stjump = new int[MAXN << 1][MAXP];
-
-	// 迭代版需要的栈，讲解118讲了递归改迭代的技巧
-	public static int[][] stack = new int[MAXN << 1][3];
-	public static int u, status, e;
-	public static int stacksize;
-
-	public static void push(int u, int status, int e) {
-		stack[stacksize][0] = u;
-		stack[stacksize][1] = status;
-		stack[stacksize][2] = e;
-		stacksize++;
-	}
-
-	public static void pop() {
-		stacksize--;
-		u = stack[stacksize][0];
-		status = stack[stacksize][1];
-		e = stack[stacksize][2];
-	}
+	public static int[] edgeCnt = new int[MAXN << 1];
 
 	public static void addEdge1(int u, int v) {
 		next1[++cnt1] = head1[u];
@@ -72,14 +57,13 @@ public class Code02_NetworkDamage1 {
 		head2[u] = cnt2;
 	}
 
-	// 递归版
-	public static void tarjan1(int u) {
+	public static void tarjan(int u) {
 		dfn[u] = low[u] = ++cntd;
 		sta[++top] = u;
 		for (int e = head1[u]; e > 0; e = next1[e]) {
 			int v = to1[e];
 			if (dfn[v] == 0) {
-				tarjan1(v);
+				tarjan(v);
 				low[u] = Math.min(low[u], low[v]);
 				if (low[v] >= dfn[u]) {
 					cntn++;
@@ -98,50 +82,6 @@ public class Code02_NetworkDamage1 {
 		}
 	}
 
-	// 迭代版
-	public static void tarjan2(int node) {
-		stacksize = 0;
-		push(node, -1, -1);
-		int v;
-		while (stacksize > 0) {
-			pop();
-			if (status == -1) {
-				dfn[u] = low[u] = ++cntd;
-				sta[++top] = u;
-				e = head1[u];
-			} else {
-				v = to1[e];
-				if (status == 0) {
-					low[u] = Math.min(low[u], low[v]);
-					if (low[v] >= dfn[u]) {
-						cntn++;
-						addEdge2(cntn, u);
-						addEdge2(u, cntn);
-						int pop;
-						do {
-							pop = sta[top--];
-							addEdge2(cntn, pop);
-							addEdge2(pop, cntn);
-						} while (pop != v);
-					}
-				} else {
-					low[u] = Math.min(low[u], dfn[v]);
-				}
-				e = next1[e];
-			}
-			if (e != 0) {
-				v = to1[e];
-				if (dfn[v] == 0) {
-					push(u, 0, e);
-					push(v, -1, -1);
-				} else {
-					push(u, 1, e);
-				}
-			}
-		}
-	}
-
-	// 圆方树上建立深度和倍增表
 	public static void dfs(int u, int fa) {
 		dep[u] = dep[fa] + 1;
 		stjump[u][0] = fa;
@@ -156,7 +96,6 @@ public class Code02_NetworkDamage1 {
 		}
 	}
 
-	// 圆方树上任意两点的最低公共祖先
 	public static int getLca(int x, int y) {
 		if (dep[x] < dep[y]) {
 			int tmp = x;
@@ -180,9 +119,38 @@ public class Code02_NetworkDamage1 {
 		return stjump[x][0];
 	}
 
-	// 圆方树上任意两点间的距离
-	public static int getDist(int x, int y) {
-		return dep[x] + dep[y] - 2 * dep[getLca(x, y)];
+	public static void dfsCnt(int u, int fa) {
+		edgeCnt[u] += edgeCnt[fa];
+		for (int e = head2[u]; e > 0; e = next2[e]) {
+			int v = to2[e];
+			if (v != fa) {
+				dfsCnt(v, u);
+			}
+		}
+	}
+
+	public static void buildEdgeCnt() {
+		for (int i = 1; i <= m; i++) {
+			int fa = stjump[a[i]][0];
+			int fb = stjump[b[i]][0];
+			if (fa == fb || stjump[fa][0] == b[i]) {
+				edgeCnt[fa]++;
+			} else {
+				edgeCnt[fb]++;
+			}
+		}
+		for (int i = n + 1; i <= cntn; i++) {
+			if (edgeCnt[i] == 1) {
+				edgeCnt[i] = 0;
+			}
+		}
+		dfsCnt(1, 0);
+	}
+
+	public static int query(int x, int y) {
+		int xylca = getLca(x, y);
+		int lcafa = stjump[xylca][0];
+		return edgeCnt[x] + edgeCnt[y] - edgeCnt[xylca] - edgeCnt[lcafa];
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -191,25 +159,20 @@ public class Code02_NetworkDamage1 {
 		n = in.nextInt();
 		m = in.nextInt();
 		cntn = n;
-		for (int i = 1, u, v; i <= m; i++) {
-			u = in.nextInt();
-			v = in.nextInt();
-			addEdge1(u, v);
-			addEdge1(v, u);
+		for (int i = 1; i <= m; i++) {
+			a[i] = in.nextInt();
+			b[i] = in.nextInt();
+			addEdge1(a[i], b[i]);
+			addEdge1(b[i], a[i]);
 		}
-		// tarjan1(1);
-		tarjan2(1);
+		tarjan(1);
 		dfs(1, 0);
+		buildEdgeCnt();
 		q = in.nextInt();
-		for (int i = 1, x, y, z; i <= q; i++) {
+		for (int i = 1, x, y; i <= q; i++) {
 			x = in.nextInt();
 			y = in.nextInt();
-			z = in.nextInt();
-			if (getDist(x, y) == getDist(x, z) + getDist(y, z)) {
-				out.println("yes");
-			} else {
-				out.println("no");
-			}
+			out.println(query(x, y));
 		}
 		out.flush();
 		out.close();

@@ -1,10 +1,17 @@
 package class194;
 
 // 警察，java版
+// 给定一张无向图，一共n个点、m条边，所有点保证连通并且无重边
+// 一共q条查询，每条查询是如下两种类型中的一种
+// 查询 1 a b c d : 已知c和d之间有边，如果删去这条边，打印a和b是否连通
+// 查询 2 a b c   : 如果删除点c，打印a和b是否连通
+// 1 <= n <= 10^5
+// 1 <= m <= 5 * 10^5
+// 1 <= q <= 3 * 10^5
 // 测试链接 : https://www.luogu.com.cn/problem/P4334
 // 提交以下的code，提交时请把类名改成"Main"
-// 本题卡常导致java的实现无法通过，索性很多递归函数也不改迭代了
-// 想通过用C++实现，本节课Code05_Policija2文件就是C++的实现
+// 本题卡常导致java的实现无法通过，很多递归函数索性也不改迭代了
+// 想通过用C++实现，本节课Code07_Policija2文件就是C++的实现
 // 两个版本的逻辑完全一样，C++版本可以通过所有测试
 
 import java.io.IOException;
@@ -13,7 +20,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-public class Code05_Policija1 {
+public class Code07_Policija1 {
 
 	public static int MAXN = 100001;
 	public static int MAXM = 500001;
