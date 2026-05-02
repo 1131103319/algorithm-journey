@@ -67,7 +67,7 @@ public class Code04_BoundedKnapsackWithMonotonicQueue {
 			// 同余分组  货物重量取余最大值和背包容量取最小
 			for (int mod = 0; mod <= Math.min(t, w[i] - 1); mod++) {
 				l = r = 0;
-				//遍历每一组
+				//遍历每一组 从0-背包容量整个组全放进去
 				for (int j = mod; j <= t; j += w[i]) {
 					//单调队列从大到小：如果发现队列最右侧的值比当前要进来的值小或等就弹出
 					while (l < r && value1(dp, i, queue[r - 1]) <= value1(dp, i, j)) {
@@ -79,7 +79,7 @@ public class Code04_BoundedKnapsackWithMonotonicQueue {
 					if (queue[l] == j - w[i] * (c[i] + 1)) {
 						l++;
 					}
-					//
+					//(j-l)/w[i]*v[i] 需要几个货物的值
 					dp[i][j] = value1(dp, i, queue[l]) + j / w[i] * v[i];
 				}
 			}
@@ -100,13 +100,14 @@ public class Code04_BoundedKnapsackWithMonotonicQueue {
 		for (int i = 1; i <= n; i++) {
 			for (int mod = 0; mod <= Math.min(t, w[i] - 1); mod++) {
 				l = r = 0;
-				// 先把c[i]个的指标进入单调队列
+				// 先把c[i]个的指标进入单调队列 cnt是统计货物数量
 				for (int j = t - mod, cnt = 1; j >= 0 && cnt <= c[i]; j -= w[i], cnt++) {
 					while (l < r && value2(i, queue[r - 1]) <= value2(i, j)) {
 						r--;
 					}
 					queue[r++] = j;
 				}
+				//维持窗口保持数量，enter在窗口最左侧，还没进去，j在窗口最右侧
 				for (int j = t - mod, enter = j - w[i] * c[i]; j >= 0; j -= w[i], enter -= w[i]) {
 					// 窗口进入enter位置的指标
 					if (enter >= 0) {

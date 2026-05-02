@@ -67,7 +67,9 @@ public class Code05_MixedKnapsack {
 	public static int compute() {
 		Arrays.fill(dp, 1, m + 1, false);
 		dp[0] = true;
+		//每种货币
 		for (int i = 1; i <= n; i++) {
+			//如果货币数量为1，等同于01背包
 			if (cnt[i] == 1) {
 				// 01背包的空间压缩实现是从右往左更新的
 				for (int j = m; j >= val[i]; j--) {

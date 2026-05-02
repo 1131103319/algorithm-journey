@@ -70,9 +70,12 @@ public class Code01_MinimumInsertionToPalindrome {
 		char[] s = str.toCharArray();
 		int n = s.length;
 		int[][] dp = new int[n][n];
+		//dp[l[l 默认填充为0
+		//dp[l[l+1填充
 		for (int l = 0; l < n - 1; l++) {
 			dp[l][l + 1] = s[l] == s[l + 1] ? 0 : 1;
 		}
+		//dp[l[l+2..填充
 		for (int l = n - 3; l >= 0; l--) {
 			for (int r = l + 2; r < n; r++) {
 				if (s[l] == s[r]) {
@@ -98,6 +101,7 @@ public class Code01_MinimumInsertionToPalindrome {
 		int[] dp = new int[n];
 		dp[n - 1] = s[n - 2] == s[n - 1] ? 0 : 1;
 		for (int l = n - 3, leftDown, backUp; l >= 0; l--) {
+			//这个就是dp【r
 			leftDown = dp[l + 1];
 			dp[l + 1] = s[l] == s[l + 1] ? 0 : 1;
 			for (int r = l + 2; r < n; r++) {

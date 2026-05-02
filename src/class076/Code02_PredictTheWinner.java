@@ -17,6 +17,7 @@ public class Code02_PredictTheWinner {
 	// 暴力尝试
 	public static boolean predictTheWinner1(int[] nums) {
 		int sum = 0;
+		//累加
 		for (int num : nums) {
 			sum += num;
 		}
